@@ -1,38 +1,22 @@
-const { PubSub } = require("@google-cloud/pubsub");
+import express from "express";
 
-async function pullMessages() {
-  const topic = process.env.PUBSUB_TOPIC;
-  const subName = `${topic}-sub`;
+const app = express();
+const port = process.env.PORT || 8080;
 
-  const pubsub = new PubSub();
-  const subscription = pubsub.subscription(subName);
+// JSON ボディをパース
+app.use(express.json());
 
-  console.log(`Pulling messages from ${subName}...`);
+// POST /publish に対応
+app.post("/publish", (req, res) => {
+  console.log("Received request body:", JSON.stringify(req.body, null, 2));
+  res.status(200).send("Message received and logged.");
+});
 
-  const [messages] = await subscription.pull({
-    maxMessages: 10,
-    returnImmediately: true,
-  });
+// ヘルスチェック対応（任意）
+app.get("/", (req, res) => {
+  res.status(200).send("OK");
+});
 
-  if (!messages.length) {
-    console.log("No messages found.");
-    return;
-  }
-
-  for (const msg of messages) {
-    console.log(`Message ID: ${msg.id}`);
-    console.log(`Data: ${msg.data.toString()}`);
-    if (msg.attributes) {
-      console.log(`Attributes: ${JSON.stringify(msg.attributes)}`);
-    }
-  }
-
-  const ackIds = messages.map((msg) => msg.ackId);
-  await subscription.acknowledge(ackIds);
-  console.log("Acknowledged all messages.");
-}
-
-pullMessages().catch((err) => {
-  console.error("Error:", err);
-  process.exit(1);
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });

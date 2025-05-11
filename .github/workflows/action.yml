@@ -1,0 +1,53 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
+    environment: ${{ github.ref_name }}
+    env:
+      REGION: asia-northeast1
+      SERVICE_NAME: node-news-notification
+      DOCKER_BUILDKIT: 1
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ secrets.OIDC_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Register gcloud as a Docker credential
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Set environment variables
+        run: |
+          echo REPOSITORY=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/node-news-notification >> $GITHUB_ENV
+
+      - name: Build an image from a Dockerfile
+        run: |
+          docker pull ${REPOSITORY}/node-news-notification:latest || true
+          docker build \
+            --cache-from=${REPOSITORY}/node-news-notification:latest \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --tag ${REPOSITORY}/node-news-notification:${GITHUB_SHA} .
+          docker tag ${REPOSITORY}/node-news-notification:${GITHUB_SHA} ${REPOSITORY}/node-news-notification:latest
+
+      - name: Push an image or a repository to a registry
+        run: |
+          docker push ${REPOSITORY}/node-news-notification:${GITHUB_SHA}
+          docker push ${REPOSITORY}/node-news-notification:latest
