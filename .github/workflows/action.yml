@@ -51,3 +51,13 @@ jobs:
         run: |
           docker push ${REPOSITORY}/node-news-notification:${GITHUB_SHA}
           docker push ${REPOSITORY}/node-news-notification:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${SERVICE_NAME} \
+            --image ${REPOSITORY}/node-news-notification:${GITHUB_SHA} \
+            --network private-vpc \
+            --subnet private-subnet \
+            --region $REGION \
+            --platform managed \
+            --service-account ${{ secrets.RUN_ACCOUNT_EMAIL }}
