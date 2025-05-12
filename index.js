@@ -8,7 +8,7 @@ app.use(express.json());
 
 // POST /publish に対応
 app.post("/publish", (req, res) => {
-  console.log("Received request body:", JSON.stringify(req.body, null, 2));
+  console.log("Received request body:", req.body);
   res.status(200).send("Message received and logged.");
 });
 
