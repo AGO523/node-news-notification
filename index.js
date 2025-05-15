@@ -8,8 +8,24 @@ app.use(express.json());
 
 // POST /publish に対応
 app.post("/publish", (req, res) => {
-  console.log("Received request body:", req.body);
-  res.status(200).send("Message received and logged.");
+  const messages = req.body?.messages;
+
+  if (!Array.isArray(messages)) {
+    console.error("Invalid request: messages field is missing or not an array");
+    return res.status(400).send("Invalid request");
+  }
+
+  for (const message of messages) {
+    try {
+      const decoded = Buffer.from(message.data, "base64").toString("utf8");
+      const parsed = JSON.parse(decoded);
+      console.log("Decoded message:", parsed);
+    } catch (err) {
+      console.error("Failed to decode or parse message:", err);
+    }
+  }
+
+  res.status(200).send("Messages received and decoded.");
 });
 
 // ヘルスチェック対応（任意）
