@@ -60,4 +60,5 @@ jobs:
             --subnet private-subnet \
             --region $REGION \
             --platform managed \
-            --service-account ${{ secrets.RUN_ACCOUNT_EMAIL }}
+            --service-account ${{ secrets.RUN_ACCOUNT_EMAIL }} \
+            --set-secrets="GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}

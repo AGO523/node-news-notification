@@ -1,17 +1,15 @@
 import express from "express";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const app = express();
 const port = process.env.PORT || 8080;
+const geminiApiKey = process.env.GEMINI_API_KEY;
 
-// JSON ボディをパース
 app.use(express.json());
 
-// POST /publish に対応
-app.post("/publish", (req, res) => {
+app.post("/publish", async (req, res) => {
   const messages = req.body?.messages;
-
   if (!Array.isArray(messages)) {
-    console.error("Invalid request: messages field is missing or not an array");
     return res.status(400).send("Invalid request");
   }
 
@@ -19,16 +17,33 @@ app.post("/publish", (req, res) => {
     try {
       const decoded = Buffer.from(message.data, "base64").toString("utf8");
       const parsed = JSON.parse(decoded);
+
       console.log("Decoded message:", parsed);
+
+      const summary = await runGemini(parsed.topic);
+      console.log("Gemini summary:", summary);
     } catch (err) {
-      console.error("Failed to decode or parse message:", err);
+      console.error("Error handling message:", err);
     }
   }
 
-  res.status(200).send("Messages received and decoded.");
+  res.status(200).send("Messages processed.");
 });
 
-// ヘルスチェック対応（任意）
+async function runGemini(topic) {
+  const genAI = new GoogleGenerativeAI(geminiApiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+  const prompt = `
+「${topic}」について、信頼性の高いニュースソースを3件検索して要約してください。
+それぞれのニュースについて簡潔な要約と参照URLを必ず記載してください。
+`;
+
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  return response.text();
+}
+
 app.get("/", (req, res) => {
   res.status(200).send("OK");
 });
