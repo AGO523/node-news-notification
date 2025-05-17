@@ -22,6 +22,8 @@ app.post("/publish", async (req, res) => {
 
       const summary = await runGemini(parsed.topic);
       console.log("Gemini summary:", summary);
+      // summary を専用の D1 に保存
+      // cron trigger で定期的に実行する workers を作成
     } catch (err) {
       console.error("Error handling message:", err);
     }
@@ -35,7 +37,9 @@ async function runGemini(topic) {
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
   const prompt = `
-「${topic}」について、信頼性の高いニュースソースを3件検索して要約してください。
+あなたは優秀なリサーチャーです。
+私は「${topic}」について、最新の情報をキャッチアップしたいと考えています。
+現在の日時を取得して、「${topic}」について、信頼性の高いニュースソースを3件検索して要約してください。
 それぞれのニュースについて簡潔な要約と参照URLを必ず記載してください。
 `;
 
