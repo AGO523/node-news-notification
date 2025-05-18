@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const app = express();
 const port = process.env.PORT || 8080;
 const geminiApiKey = process.env.GEMINI_API_KEY;
+const allowedRepositories = ["newsAppReactRouter"];
 
 app.use(express.json());
 
@@ -16,11 +17,15 @@ app.post("/publish", async (req, res) => {
   for (const message of messages) {
     try {
       const decoded = Buffer.from(message.data, "base64").toString("utf8");
-      const parsed = JSON.parse(decoded);
+      const parsedMessage = JSON.parse(decoded);
 
-      console.log("Decoded message:", parsed);
+      if (!allowedRepositories.includes(parsedMessage.repositoryName)) {
+        return res.status(403).send("Forbidden");
+      }
 
-      const summary = await runGemini(parsed.topic);
+      console.log("Decoded message:", parsedMessage);
+
+      const summary = await runGemini(parsedMessage);
       console.log("Gemini summary:", summary);
       // summary を専用の D1 に保存
       // cron trigger で定期的に実行する workers を作成
@@ -32,16 +37,11 @@ app.post("/publish", async (req, res) => {
   res.status(200).send("Messages processed.");
 });
 
-async function runGemini(topic) {
+async function runGemini(message) {
   const genAI = new GoogleGenerativeAI(geminiApiKey);
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-  const prompt = `
-あなたは優秀なリサーチャーです。
-私は「${topic}」について、最新の情報をキャッチアップしたいと考えています。
-現在の日時を取得して、「${topic}」について、信頼性の高いニュースソースを3件検索して要約してください。
-それぞれのニュースについて簡潔な要約と参照URLを必ず記載してください。
-`;
+  const prompt = message.prompt.replace(/\$\{topic\}/g, message.topic);
 
   const result = await model.generateContent(prompt);
   const response = await result.response;
