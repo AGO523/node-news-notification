@@ -25,7 +25,7 @@ app.post("/publish", async (req, res) => {
 
       console.log("Decoded message:", parsedMessage);
 
-      const summary = await runGemini(parsedMessage);
+      const summary = await runGemini(parsedMessage.prompt);
       console.log("Gemini summary:", summary);
       // summary を専用の D1 に保存
       // cron trigger で定期的に実行する workers を作成
@@ -37,12 +37,9 @@ app.post("/publish", async (req, res) => {
   res.status(200).send("Messages processed.");
 });
 
-async function runGemini(message) {
+async function runGemini(prompt) {
   const genAI = new GoogleGenerativeAI(geminiApiKey);
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-  const prompt = message.prompt.replace(/\$\{topic\}/g, message.topic);
-
   const result = await model.generateContent(prompt);
   const response = await result.response;
   return response.text();
