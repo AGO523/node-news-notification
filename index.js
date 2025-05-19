@@ -4,7 +4,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const app = express();
 const port = process.env.PORT || 8080;
 const geminiApiKey = process.env.GEMINI_API_KEY;
-const allowedRepositories = ["newsAppReactRouter"];
+const allowedRepositories = process.env.ALLOWED_REPOSITORIES
+  ? process.env.ALLOWED_REPOSITORIES.split(",")
+  : [];
 
 app.use(express.json());
 
