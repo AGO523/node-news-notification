@@ -61,5 +61,5 @@ jobs:
             --region $REGION \
             --platform managed \
             --service-account ${{ secrets.RUN_ACCOUNT_EMAIL }} \
-            --set-secrets="GEMINI_API_KEY=gemini-api-key:latest"
+            --set-secrets="GEMINI_API_KEY=gemini-api-key:latest" \
             --set-secrets="ALLOWED_REPOSITORIES=allowed-repositories:latest"
