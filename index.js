@@ -8,6 +8,10 @@ const allowedRepositories = process.env.ALLOWED_REPOSITORIES
   ? process.env.ALLOWED_REPOSITORIES.split(",")
   : [];
 
+const D1_API_URL = process.env.D1_API_URL;
+const D1_API_KEY = process.env.D1_API_KEY;
+const D1_API_TOKEN = process.env.D1_API_TOKEN;
+
 app.use(express.json());
 
 app.post("/publish", async (req, res) => {
@@ -29,8 +33,15 @@ app.post("/publish", async (req, res) => {
 
       const summary = await runGemini(parsedMessage.prompt);
       console.log("Gemini summary:", summary);
-      // summary を専用の D1 に保存
-      // cron trigger で定期的に実行する workers を作成
+
+      await saveToD1({
+        email: parsedMessage.email,
+        uuid: parsedMessage.uuid,
+        repositoryName: parsedMessage.repositoryName,
+        topic: parsedMessage.topic,
+        summary,
+        createdAt: new Date().toISOString(),
+      });
     } catch (err) {
       console.error("Error handling message:", err);
     }
@@ -45,6 +56,47 @@ async function runGemini(prompt) {
   const result = await model.generateContent(prompt);
   const response = await result.response;
   return response.text();
+}
+
+async function saveToD1({
+  email,
+  uuid,
+  repositoryName,
+  topic,
+  summary,
+  createdAt,
+}) {
+  if (!D1_API_URL || !D1_API_TOKEN) {
+    throw new Error("D1 API credentials not set");
+  }
+
+  const sql = `
+    INSERT INTO summaries (email, uuid, repository_name, topic, summary, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  const body = {
+    params: [email, uuid, repositoryName, topic, summary, createdAt],
+    sql,
+  };
+
+  const response = await fetch(D1_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${D1_API_TOKEN}`,
+      ...(D1_API_KEY && { "X-API-KEY": D1_API_KEY }),
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Failed to insert into D1:", errText);
+    throw new Error("D1 insert failed");
+  }
+
+  console.log("D1 insert success");
 }
 
 app.get("/", (req, res) => {

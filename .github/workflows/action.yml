@@ -62,4 +62,7 @@ jobs:
             --platform managed \
             --service-account ${{ secrets.RUN_ACCOUNT_EMAIL }} \
             --set-secrets="GEMINI_API_KEY=gemini-api-key:latest" \
-            --set-secrets="ALLOWED_REPOSITORIES=allowed-repositories:latest"
+            --set-secrets="ALLOWED_REPOSITORIES=allowed-repositories:latest" \
+            --set-secrets="D1_API_URL=d1-api-url:latest" \
+            --set-secrets="D1_API_KEY=d1-api-key:latest" \
+            --set-secrets="D1_API_TOKEN=d1-api-token:latest"
