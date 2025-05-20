@@ -40,7 +40,7 @@ app.post("/publish", async (req, res) => {
         repositoryName: parsedMessage.repositoryName,
         topic: parsedMessage.topic,
         summary,
-        createdAt: new Date().toISOString(),
+        createdAt: Math.floor(Date.now() / 1000), // UNIX timestamp in seconds
       });
     } catch (err) {
       console.error("Error handling message:", err);
