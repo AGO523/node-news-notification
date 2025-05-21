@@ -15,21 +15,29 @@ const D1_API_TOKEN = process.env.D1_API_TOKEN;
 app.use(express.json());
 
 app.post("/publish", async (req, res) => {
+  console.log("POST /publish hit");
+  console.log("Headers:", req.headers);
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+  console.log("Allowed repositories:", allowedRepositories);
+
   const messages = req.body?.messages;
   if (!Array.isArray(messages)) {
+    console.warn("Invalid messages payload");
     return res.status(400).send("Invalid request");
   }
 
   for (const message of messages) {
     try {
       const decoded = Buffer.from(message.data, "base64").toString("utf8");
+      console.log("Decoded message string:", decoded);
+
       const parsedMessage = JSON.parse(decoded);
+      console.log("Parsed message:", parsedMessage);
 
       if (!allowedRepositories.includes(parsedMessage.repositoryName)) {
+        console.warn("Repository not allowed:", parsedMessage.repositoryName);
         return res.status(403).send("Forbidden");
       }
-
-      console.log("Decoded message:", parsedMessage);
 
       const summary = await runGemini(parsedMessage.prompt);
       console.log("Gemini summary:", summary);
@@ -40,7 +48,7 @@ app.post("/publish", async (req, res) => {
         repositoryName: parsedMessage.repositoryName,
         topic: parsedMessage.topic,
         summary,
-        createdAt: Math.floor(Date.now() / 1000), // UNIX timestamp in seconds
+        createdAt: Math.floor(Date.now() / 1000),
       });
     } catch (err) {
       console.error("Error handling message:", err);
