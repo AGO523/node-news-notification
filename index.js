@@ -29,7 +29,9 @@ app.post("/publish", async (req, res) => {
       const parsedMessage = JSON.parse(decoded);
       console.log("Parsed message:", parsedMessage);
 
-      if (!allowedRepositories.includes(parsedMessage.repositoryName)) {
+      const formatedRepositoryName = `${process.env.ALLOWED_OWNER}/${parsedMessage.repositoryName}`;
+
+      if (!allowedRepositories.includes(formatedRepositoryName)) {
         console.warn("Repository not allowed:", parsedMessage.repositoryName);
         return res.status(403).send("Forbidden");
       }
