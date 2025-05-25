@@ -46,14 +46,14 @@ app.post("/publish", async (req, res) => {
       });
 
       // Gemini + update はバックグラウンドで非同期
-      // (async () => {
-      //   try {
-      //     const summary = await runGemini(parsedMessage.prompt);
-      //     await updateSummaryInD1(parsedMessage.uuid, summary);
-      //   } catch (err) {
-      //     console.error("Background processing failed:", err);
-      //   }
-      // })();
+      (async () => {
+        try {
+          const summary = await runGemini(parsedMessage.prompt);
+          await updateSummaryInD1(parsedMessage.uuid, summary);
+        } catch (err) {
+          console.error("Background processing failed:", err);
+        }
+      })();
     }
 
     // saveToD1 完了後にレスポンス
