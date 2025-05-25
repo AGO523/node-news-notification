@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const app = express();
@@ -15,9 +16,27 @@ const D1_API_URL = process.env.D1_API_URL;
 const D1_API_KEY = process.env.D1_API_KEY;
 const D1_API_TOKEN = process.env.D1_API_TOKEN;
 
+// 短期制限（バースト防止）
+const shortTermLimiter = rateLimit({
+  windowMs: 1 * 10 * 1000, // 10秒
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Too many requests in a short time. Please slow down.",
+});
+
+// 中期制限（継続的なDoS対策）
+const longTermLimiter = rateLimit({
+  windowMs: 60 * 10 * 1000, // 10分
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Too many requests this minute. Please try again later.",
+});
+
 app.use(express.json());
 
-app.post("/publish", async (req, res) => {
+app.post("/publish", shortTermLimiter, longTermLimiter, async (req, res) => {
   const messages = req.body?.messages;
   if (!Array.isArray(messages)) {
     return res.status(400).send("Invalid request");
