@@ -18,6 +18,8 @@ const D1_API_TOKEN = process.env.D1_API_TOKEN;
 app.use(express.json());
 
 app.post("/publish", async (req, res) => {
+  const referer = req.get("Referer");
+  console.log("Referer:", referer);
   const messages = req.body?.messages;
   if (!Array.isArray(messages)) {
     return res.status(400).send("Invalid request");
