@@ -44,10 +44,12 @@ app.post("/publish", async (req, res) => {
         status: "accepted",
         createdAt: Math.floor(Date.now() / 1000),
       });
+      console.log("Message saved to D1");
 
       // Gemini + update はバックグラウンドで非同期
       (async () => {
         try {
+          console.log("Running Gemini for prompt");
           const summary = await runGemini(parsedMessage.prompt);
           await updateSummaryInD1(parsedMessage.uuid, summary);
         } catch (err) {
@@ -57,6 +59,7 @@ app.post("/publish", async (req, res) => {
     }
 
     // saveToD1 完了後にレスポンス
+    console.log("Status: 200, Messages processed successfully");
     res.status(200).send("Messages received.");
   } catch (err) {
     console.error("Initial processing error:", err);
