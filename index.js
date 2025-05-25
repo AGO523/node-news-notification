@@ -18,8 +18,6 @@ const D1_API_TOKEN = process.env.D1_API_TOKEN;
 app.use(express.json());
 
 app.post("/publish", async (req, res) => {
-  const referer = req.get("Referer");
-  console.log("Referer:", referer);
   const messages = req.body?.messages;
   if (!Array.isArray(messages)) {
     return res.status(400).send("Invalid request");
@@ -46,12 +44,10 @@ app.post("/publish", async (req, res) => {
         status: "accepted",
         createdAt: Math.floor(Date.now() / 1000),
       });
-      console.log("Message saved to D1");
 
       // Gemini + update はバックグラウンドで非同期
       (async () => {
         try {
-          console.log("Running Gemini for prompt");
           const summary = await runGemini(parsedMessage.prompt);
           await updateSummaryInD1(parsedMessage.uuid, summary);
         } catch (err) {
@@ -61,7 +57,6 @@ app.post("/publish", async (req, res) => {
     }
 
     // saveToD1 完了後にレスポンス
-    console.log("Status: 200, Messages processed successfully");
     res.status(200).send("Messages received.");
   } catch (err) {
     console.error("Initial processing error:", err);
