@@ -16,7 +16,6 @@ const D1_API_URL = process.env.D1_API_URL;
 const D1_API_KEY = process.env.D1_API_KEY;
 const D1_API_TOKEN = process.env.D1_API_TOKEN;
 
-// 短期制限（バースト防止）
 const shortTermLimiter = rateLimit({
   windowMs: 1 * 10 * 1000, // 10秒
   max: 3,
@@ -25,7 +24,6 @@ const shortTermLimiter = rateLimit({
   message: "Too many requests in a short time. Please slow down.",
 });
 
-// 中期制限（継続的なDoS対策）
 const longTermLimiter = rateLimit({
   windowMs: 60 * 10 * 1000, // 10分
   max: 10,
