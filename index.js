@@ -139,7 +139,7 @@ async function updateSummaryInD1(uuid, summary) {
 
   const sql = `
     UPDATE summaries
-    SET summary = ?, status = 'completed'
+    SET summary = ?, status = 'pending'
     WHERE uuid = ?
   `;
 
