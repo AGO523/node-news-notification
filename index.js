@@ -128,8 +128,6 @@ async function saveToD1({
     console.error("D1 insert failed:", errText);
     throw new Error("D1 insert failed");
   }
-
-  console.log("D1 insert success");
 }
 
 async function updateSummaryInD1(uuid, summary) {
@@ -163,8 +161,6 @@ async function updateSummaryInD1(uuid, summary) {
     console.error("D1 update failed:", errText);
     throw new Error("D1 update failed");
   }
-
-  console.log("D1 update success");
 }
 
 app.get("/", (req, res) => {
