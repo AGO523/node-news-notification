@@ -3,6 +3,12 @@ import rateLimit from "express-rate-limit";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const app = express();
+
+// Trust proxy for rate limiting to work correctly behind reverse proxy
+// More secure: only trust first proxy (Google Cloud Run)
+// LB を使用する場合は再検討
+app.set("trust proxy", 1);
+
 const port = process.env.PORT || 8080;
 const geminiApiKey = process.env.GEMINI_API_KEY;
 const allowedOwner = process.env.ALLOWED_OWNER || "";
