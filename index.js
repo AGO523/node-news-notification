@@ -50,6 +50,7 @@ app.post("/publish", shortTermLimiter, longTermLimiter, async (req, res) => {
     for (const message of messages) {
       const decoded = Buffer.from(message.data, "base64").toString("utf8");
       const parsedMessage = JSON.parse(decoded);
+      console.log("Received message:", parsedMessage);
       const formatedRepositoryName = `${process.env.ALLOWED_OWNER}/${parsedMessage.repositoryName}`;
 
       if (!allowedRepositories.includes(formatedRepositoryName)) {
